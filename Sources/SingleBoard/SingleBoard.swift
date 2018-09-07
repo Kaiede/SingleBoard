@@ -89,6 +89,8 @@ public protocol BoardI2CEndpoint {
 // MARK: PWM Access
 //
 public protocol BoardPWM {
+	var count: Int { get }
+
 	func enable()
 	func disable()
 

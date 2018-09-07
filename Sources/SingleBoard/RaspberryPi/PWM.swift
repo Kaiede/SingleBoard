@@ -45,6 +45,10 @@ class RaspberryPWM: BoardPWM {
 		self.channels.append(RaspberryPWMChannel(channel: 1, controller: self, pins: [.p12, .p18]))
 	}
 
+	var count: Int { 
+		return channels.count
+	}
+
 	func enable() {
 		guard !self.enabled else { return }
 
