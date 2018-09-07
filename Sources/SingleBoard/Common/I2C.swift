@@ -182,38 +182,38 @@ public final class SysI2CController: BoardI2CChannel {
 	fileprivate func readByte(from command: UInt8) -> UInt8? {
 		var data = [UInt8](repeating:0, count: SysI2CController.I2C_MAX_LENGTH+1)
 
-		guard smbusIoctl(.read, command: command, size: MemoryLayout<UInt8>.size, data: &data) else { return nil }
+		guard smbusIoctl(.read, command: command, dataKind: .byteData, data: &data) else { return nil }
 		return data[0]
 	}
 
 	fileprivate func readWord(from command: UInt8) -> UInt16? {
 		var data = [UInt8](repeating:0, count: SysI2CController.I2C_MAX_LENGTH+1)
 
-		guard smbusIoctl(.read, command: command, size: MemoryLayout<UInt16>.size, data: &data) else { return nil }
+		guard smbusIoctl(.read, command: command, dataKind: .wordData, data: &data) else { return nil }
 		return (UInt16(data[1]) << 8) + UInt16(data[0])
 	}
 
 	fileprivate func readByteArray(from command: UInt8) -> [UInt8]? {
 		var data = [UInt8](repeating:0, count: SysI2CController.I2C_MAX_LENGTH+1)
 
-		guard smbusIoctl(.read, command: command, size: 5, data: &data) else { return nil }
+		guard smbusIoctl(.read, command: command, dataKind: .blockData, data: &data) else { return nil }
 		let lenData = Int(data[0])
 		return Array(data[1...lenData])
 	}
 
 	fileprivate func writeQuick() -> Bool {
-		return smbusIoctl(.write, command: 0, size: 0, data: nil)
+		return smbusIoctl(.write, command: 0, dataKind: .quick, data: nil)
 	}
 
 	fileprivate func writeByte(value: UInt8) -> Bool {
-		return  smbusIoctl(.write, command: value, size: MemoryLayout<UInt8>.size, data: nil)
+		return  smbusIoctl(.write, command: value, dataKind: .byte, data: nil)
 	}
 
 	fileprivate func writeByte(to command: UInt8, value: UInt8) -> Bool {
 		var data = [UInt8](repeating:0, count: SysI2CController.I2C_MAX_LENGTH+1)
 
 		data[0] = value
-		guard smbusIoctl(.write, command: command, size: MemoryLayout<UInt8>.size, data: &data) else { return false }
+		guard smbusIoctl(.write, command: command, dataKind: .byteData, data: &data) else { return false }
 		return true
 	}
 
@@ -222,7 +222,8 @@ public final class SysI2CController: BoardI2CChannel {
 
 		data[0] = UInt8(value & 0xFF)
 		data[1] = UInt8(value >> 8)
-		guard smbusIoctl(.write, command: command, size: MemoryLayout<UInt16>.size, data: &data) else { return false }
+
+		guard smbusIoctl(.write, command: command, dataKind: .wordData, data: &data) else { return false }
 		return true
 	}
 
@@ -234,17 +235,21 @@ public final class SysI2CController: BoardI2CChannel {
 			data[i] = value[i - 1]
 		}
 		data[0] = UInt8(value.count)
-		guard smbusIoctl(.write, command: command, size: 5, data: &data) else { return false }
+		guard smbusIoctl(.write, command: command, dataKind: .blockData, data: &data) else { return false }
 		return true
 	}
 
-	fileprivate func smbusIoctl(_ readOrWrite: SMBusReadWrite, command: UInt8, size: Int, data: UnsafeMutablePointer<UInt8>?) -> Bool {
+	fileprivate func smbusIoctl(_ readOrWrite: SMBusReadWrite, command: UInt8, dataKind: SMBusDataKind, data: UnsafeMutablePointer<UInt8>?) -> Bool {
 		if self.fdI2C == -1 {
 			self.openChannel()
 		}
 
-		var args = SMBusData(readOrWrite: readOrWrite, command: command, size: Int32(size), data: data)
-		return ioctl(self.fdI2C, SysI2CController.I2C_SMBUS, &args) >= 0
+		var args = SMBusData(readOrWrite, command: command, dataKind: dataKind, data: data)
+		guard ioctl(self.fdI2C, SysI2CController.I2C_SMBUS, &args) >= 0 else { 
+			print("I2C_SMBUS Error: \(errno)")
+			return false
+                }
+		return true
 	}
 }
 
@@ -329,13 +334,28 @@ struct SMBusReadWrite {
 		self.rawValue = rawValue
 	}
 
-	static let read = SMBusReadWrite(rawValue: 0)
-	static let write = SMBusReadWrite(rawValue: 1)
+	static let read = SMBusReadWrite(rawValue: 1)
+	static let write = SMBusReadWrite(rawValue: 0)
+}
+
+enum SMBusDataKind: Int32 {
+	case quick = 0
+	case byte = 1
+	case byteData = 2
+	case wordData = 3
+	case blockData = 5
 }
 
 fileprivate struct SMBusData {
 	var readOrWrite: SMBusReadWrite
 	var command: UInt8
-	var size: Int32
+	var dataKind: Int32
 	var data: UnsafeMutablePointer<UInt8>?
+
+	init(_ readOrWrite: SMBusReadWrite, command: UInt8, dataKind: SMBusDataKind, data: UnsafeMutablePointer<UInt8>?) {
+		self.readOrWrite = readOrWrite
+		self.command = command
+		self.dataKind = dataKind.rawValue
+		self.data = data
+	}
 }
