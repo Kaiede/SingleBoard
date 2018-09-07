@@ -1,0 +1,58 @@
+
+matrix:
+  allow_failures:
+    - os: linux
+      env: SWIFT_BRANCH=swift-4.1.2-release
+      
+  include:
+    - name: "Linux Swift 3.1.1"
+      os: linux
+      language: generic
+      dist: trusty
+      env:
+        - SWIFT_BRANCH=swift-3.1.1-release
+        - SWIFT_VERSION=swift-3.1.1-RELEASE
+      install:
+        - mkdir swift
+        - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar -xz -C swift
+        - export PATH="$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH"
+    
+    - name: "Linux Swift 4.1.1"
+      os: linux
+      language: generic
+      dist: trusty
+      env:
+        - SWIFT_BRANCH=swift-4.1.1-release
+        - SWIFT_VERSION=swift-4.1.1-RELEASE
+      install:
+        - mkdir swift
+        - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar -xz -C swift
+        - export PATH="$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH"
+        
+    - name: "Linux Swift 4.1.2"
+      os: linux
+      language: generic
+      dist: trusty
+      env:
+        - SWIFT_BRANCH=swift-4.1.2-release
+        - SWIFT_VERSION=swift-4.1.2-RELEASE
+      install:
+        - mkdir swift
+        - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar -xz -C swift
+        - export PATH="$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH"
+
+    - name: "Mac Xcode 9.4"
+      os: osx
+      osx_image: xcode9.4
+      language: generic
+
+    - name: "Mac Xcode 10"
+      os: osx
+      osx_image: xcode10
+      language: generic
+
+script:
+  - swift package reset
+  - swift package show-dependencies
+  - swift build
+  - swift test
