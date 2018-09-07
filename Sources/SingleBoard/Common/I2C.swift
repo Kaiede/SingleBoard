@@ -260,7 +260,7 @@ public final class SysI2CEndpoint: BoardI2CEndpoint {
 	public var reachable: Bool {
 		controller.setCurrentEndpoint(to: address)
 
-		return false
+		return controller.readByte(from: 0) != nil
 	}
 
 	public func readByte() -> UInt8 {
