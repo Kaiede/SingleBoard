@@ -35,9 +35,9 @@ public struct SingleBoard {
 // MARK: The Root Of It All
 //
 public protocol Board {
-	var gpio: BoardGPIO? { get }
-	var i2c: BoardI2C? { get }
-	var pwm: BoardPWM? { get }
+    var gpio: BoardGPIO? { get }
+    var i2c: BoardI2C? { get }
+    var pwm: BoardPWM? { get }
 }
 
 //
@@ -45,15 +45,15 @@ public protocol Board {
 //
 // More Types in Common/GPIO.swift
 public protocol BoardGPIO {
-	subscript(pins: PinSet) -> BoardGPIOPinSet { get }
-	subscript(pin: PinIndex) -> BoardGPIOPinSet { get }
+    subscript(pins: PinSet) -> BoardGPIOPinSet { get }
+    subscript(pin: PinIndex) -> BoardGPIOPinSet { get }
 }
 
 public protocol BoardGPIOPinSet {
-	var value: Bool { get set }
-	var activeLow: Bool { get set }
-	var mode: PinMode { get set }
-	var pullup: PinPullup { get set }
+    var value: Bool { get set }
+    var activeLow: Bool { get set }
+    var mode: PinMode { get set }
+    var pullup: PinPullup { get set }
 }
 
 //
@@ -61,48 +61,48 @@ public protocol BoardGPIOPinSet {
 //
 // More Convenience Extensions in Common/I2C.swift
 public protocol BoardI2C {
-	subscript(channel: Int) -> BoardI2CChannel? { get }
+    subscript(channel: Int) -> BoardI2CChannel? { get }
 }
 
 public protocol BoardI2CChannel {
-	func isReachable(address: Int) -> Bool
+    func isReachable(address: Int) -> Bool
 
-	subscript(address: Int) -> BoardI2CEndpoint { get }
+    subscript(address: Int) -> BoardI2CEndpoint { get }
 }
 
 public protocol BoardI2CEndpoint {
-	var reachable: Bool { get }
+    var reachable: Bool { get }
 
-	func readByte() -> UInt8
-	func readByte(from: UInt8) -> UInt8
-	func readWord(from: UInt8) -> UInt16
-	func readByteArray(from: UInt8) -> [UInt8]
+    func readByte() -> UInt8
+    func readByte(from: UInt8) -> UInt8
+    func readWord(from: UInt8) -> UInt16
+    func readByteArray(from: UInt8) -> [UInt8]
 
-	func writeQuick()
-	func writeByte(value: UInt8)
-	func writeByte(to: UInt8, value: UInt8)
-	func writeWord(to: UInt8, value: UInt16)
-	func writeByteArray(to: UInt8, value: [UInt8])
+    func writeQuick()
+    func writeByte(value: UInt8)
+    func writeByte(to: UInt8, value: UInt8)
+    func writeWord(to: UInt8, value: UInt16)
+    func writeByteArray(to: UInt8, value: [UInt8])
 }
 
 //
 // MARK: PWM Access
 //
 public protocol BoardPWM {
-	var count: Int { get }
+    var count: Int { get }
 
-	func enable()
-	func disable()
+    func enable()
+    func disable()
 
-	subscript(channel: Int) -> BoardPWMChannel { get }
+    subscript(channel: Int) -> BoardPWMChannel { get }
 }
 
 public protocol BoardPWMChannel {
-	var pins: PinSet { get }
+    var pins: PinSet { get }
 
-	func enable(pins: PinSet)
-	func enable(pin: PinIndex)
+    func enable(pins: PinSet)
+    func enable(pin: PinIndex)
 
-	func start(period: UInt, dutyCycle: Float)
-	func stop()
+    func start(period: UInt, dutyCycle: Float)
+    func stop()
 }

@@ -32,9 +32,9 @@
 #endif
 
 extension UnsafeMutablePointer {
-	func rebindMemory<T>(to type: T.Type, capacity: Int = 1) -> UnsafeMutablePointer<T> {
-		return UnsafeMutableRawPointer(self).bindMemory(to: type, capacity: capacity)
-	}
+    func rebindMemory<T>(to type: T.Type, capacity: Int = 1) -> UnsafeMutablePointer<T> {
+        return UnsafeMutableRawPointer(self).bindMemory(to: type, capacity: capacity)
+    }
 }
 
 extension utsname {

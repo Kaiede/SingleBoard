@@ -3,7 +3,7 @@ import XCTest
 #if !os(macOS)
 public func allTests() -> [XCTestCaseEntry] {
     return [
-    	// Core
+        // Core
         testCase(SingleBoardTests.allTests),
 
         // Raspberry Pi
