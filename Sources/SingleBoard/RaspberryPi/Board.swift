@@ -37,11 +37,11 @@ class RaspberryBoard: Board {
     public let gpio: BoardGPIO? = nil
     
     public let i2c: BoardI2C? = {
-        let i2c: [Int: BoardI2CChannel] = [
+        let i2c: [Int: BoardI2CController] = [
             0: SysI2CController(channel: 0),
             1: SysI2CController(channel: 1)
         ]
-        return i2c
+        return SysI2CBoard(controllers: i2c)
     }()
     
     public lazy var pwm: BoardPWM? = {

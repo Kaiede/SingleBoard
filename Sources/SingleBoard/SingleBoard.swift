@@ -61,10 +61,10 @@ public protocol BoardGPIOPinSet {
 //
 // More Convenience Extensions in Common/I2C.swift
 public protocol BoardI2C {
-    subscript(channel: Int) -> BoardI2CChannel? { get }
+    subscript(channel: Int) -> BoardI2CController? { get }
 }
 
-public protocol BoardI2CChannel {
+public protocol BoardI2CController {
     func isReachable(address: Int) -> Bool
 
     subscript(address: Int) -> BoardI2CEndpoint { get }
