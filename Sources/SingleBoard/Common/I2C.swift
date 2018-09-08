@@ -115,7 +115,7 @@ public extension BoardI2CEndpoint {
 
 // This would normally be easier in Swift 4:
 // extension Dictionary: BoardI2C where Key == Int, Value == BoardI2CChannel {}
-struct SysI2CBoard: BoardI2C {
+class SysI2CBoard: BoardI2C {
     private let controllers: [Int: BoardI2CController]
 
     init(controllers: [Int: BoardI2CController]) {

@@ -34,7 +34,7 @@ public struct SingleBoard {
 //
 // MARK: The Root Of It All
 //
-public protocol Board {
+public protocol Board: class {
     var gpio: BoardGPIO? { get }
     var i2c: BoardI2C? { get }
     var pwm: BoardPWM? { get }
@@ -44,19 +44,19 @@ public protocol Board {
 // MARK: GPIO Access
 //
 // More Types in Common/GPIO.swift
-public protocol BoardGPIO {
+public protocol BoardGPIO: class {
     subscript(pins: PinSet) -> BoardGPIOPinSet { get }
     subscript(pin: PinIndex) -> BoardGPIOPin { get }
 }
 
-public protocol BoardGPIOPin {
+public protocol BoardGPIOPin: class {
     var value: Bool { get set }
     var mode: PinMode { get set }
 
     func setPullup(_ pullup: PinPullup)
 }
 
-public protocol BoardGPIOPinSet {
+public protocol BoardGPIOPinSet: class {
     var value: Bool { get set }
 
     func setMode(_ mode: PinMode)
@@ -67,17 +67,17 @@ public protocol BoardGPIOPinSet {
 // MARK: I2C Access
 //
 // More Convenience Extensions in Common/I2C.swift
-public protocol BoardI2C {
+public protocol BoardI2C: class {
     subscript(channel: Int) -> BoardI2CController? { get }
 }
 
-public protocol BoardI2CController {
+public protocol BoardI2CController: class {
     func isReachable(address: Int) -> Bool
 
     subscript(address: Int) -> BoardI2CEndpoint { get }
 }
 
-public protocol BoardI2CEndpoint {
+public protocol BoardI2CEndpoint: class {
     var reachable: Bool { get }
 
     func readByte() -> UInt8
@@ -95,7 +95,7 @@ public protocol BoardI2CEndpoint {
 //
 // MARK: PWM Access
 //
-public protocol BoardPWM {
+public protocol BoardPWM: class {
     var count: Int { get }
 
     func enable()
@@ -104,7 +104,7 @@ public protocol BoardPWM {
     subscript(channel: Int) -> BoardPWMChannel { get }
 }
 
-public protocol BoardPWMChannel {
+public protocol BoardPWMChannel: class {
     var pins: PinSet { get }
 
     func enable(pins: PinSet)
