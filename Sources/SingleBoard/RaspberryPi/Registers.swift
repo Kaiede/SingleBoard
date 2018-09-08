@@ -147,6 +147,13 @@ typealias RaspberryGPIOClear  = PinSet
 typealias RaspberryGPIOLevels = PinSet
 
 enum RaspberryGPIOMode: UInt32 {
+    init(mode: PinMode) {
+        switch mode {
+        case .input: self = .input
+        case .output: self = .output
+        }
+    }
+
     fileprivate init(checkedValue: UInt32) {
         self.init(rawValue: checkedValue)!
     }
@@ -191,6 +198,14 @@ struct RaspberryGPIOPullup {
 
     private init(_ value: UInt32) {
         self.rawValue = value
+    }
+
+    internal init(pullup: PinPullup) {
+        switch pullup {
+        case .none: self = .disabled
+        case .down: self = .pullDown
+        case .up:   self = .pullUp
+        }
     }
 
     static let disabled = RaspberryGPIOPullup(0b00)

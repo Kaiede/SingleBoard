@@ -46,14 +46,21 @@ public protocol Board {
 // More Types in Common/GPIO.swift
 public protocol BoardGPIO {
     subscript(pins: PinSet) -> BoardGPIOPinSet { get }
-    subscript(pin: PinIndex) -> BoardGPIOPinSet { get }
+    subscript(pin: PinIndex) -> BoardGPIOPin { get }
+}
+
+public protocol BoardGPIOPin {
+    var value: Bool { get set }
+    var mode: PinMode { get set }
+
+    func setPullup(_ pullup: PinPullup)
 }
 
 public protocol BoardGPIOPinSet {
     var value: Bool { get set }
-    var activeLow: Bool { get set }
-    var mode: PinMode { get set }
-    var pullup: PinPullup { get set }
+
+    func setMode(_ mode: PinMode)
+    func setPullup(_ pullup: PinPullup)
 }
 
 //

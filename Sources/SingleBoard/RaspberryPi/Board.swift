@@ -34,7 +34,9 @@
 import Foundation
 
 class RaspberryBoard: Board {
-    public let gpio: BoardGPIO? = nil
+    public lazy var gpio: BoardGPIO? = {
+        return RaspberryGPIOController(gpioMem: self.gpioMem)
+    }()
     
     public let i2c: BoardI2C? = {
         let i2c: [Int: BoardI2CController] = [
@@ -69,6 +71,110 @@ class RaspberryBoard: Board {
         case "aarch64": return 0x3F000000
         default:
             fatalError()
+        }
+    }
+}
+
+class RaspberryGPIOController: BoardGPIO {
+    fileprivate let gpioMem: RaspberryGPIOMem
+
+    init(gpioMem: RaspberryGPIOMem) {
+        self.gpioMem = gpioMem
+    }
+
+    subscript(pin: PinIndex) -> BoardGPIOPin {
+        return RaspberryGPIOSinglePin(pin, controller: self)
+    }
+
+    subscript(pins: PinSet) -> BoardGPIOPinSet {
+        return RaspberryGPIOMultiPin(pins, controller: self)
+    }
+
+    fileprivate func getValue(for pins: PinSet) -> Bool {
+        return gpioMem.gpioLevels.pointee.intersection(pins) == pins
+    }
+
+    fileprivate func setValue(_ value: Bool, pins: PinSet) {
+        if value {
+            gpioMem.gpioSet.pointee = pins
+        } else {
+            gpioMem.gpioClear.pointee = pins
+        }
+    }
+
+    fileprivate func getMode(for pin: PinIndex) -> RaspberryGPIOMode {
+        let gpioFunction = gpioMem.gpioFunctionBase.advanced(by: pin.asRaspberryFunctionOffset)
+        return gpioFunction.pointee[pin.asRaspberryFunctionIndex]
+    }
+
+    fileprivate func setMode(_ mode: RaspberryGPIOMode, pin: PinIndex) {
+        let gpioFunction = gpioMem.gpioFunctionBase.advanced(by: pin.asRaspberryFunctionOffset)
+        gpioFunction.pointee[pin.asRaspberryFunctionIndex] = mode
+    }
+
+    fileprivate func setPullup(_ pullup: RaspberryGPIOPullup, pins: PinSet) {
+        gpioMem.gpioPullup.pointee = pullup
+        usleep(10)
+        gpioMem.gpioPullupClk.pointee = pins
+        usleep(10);
+        gpioMem.gpioPullup.pointee = .disabled
+        usleep(10);
+        gpioMem.gpioPullupClk.pointee = []
+    }
+}
+
+class RaspberryGPIOMultiPin: BoardGPIOPinSet {
+    fileprivate let pinSet: PinSet
+    fileprivate let controller: RaspberryGPIOController
+
+    init(_ pinSet: PinSet, controller: RaspberryGPIOController) {
+        self.pinSet = pinSet
+        self.controller = controller
+    }
+
+    var value: Bool {
+        get { return controller.getValue(for: self.pinSet) }
+        set { controller.setValue(newValue, pins: self.pinSet) }
+    }
+
+    func setMode(_ mode: PinMode) {
+        for pin in self.pinSet.indexes() {
+            controller.setMode(.init(mode: mode), pin: pin)
+        }
+    }
+
+    func setPullup(_ pullup: PinPullup) {
+        controller.setPullup(.init(pullup: pullup), pins: self.pinSet)
+    }
+}
+
+class RaspberryGPIOSinglePin: RaspberryGPIOMultiPin, BoardGPIOPin {
+    private let pin: PinIndex
+
+    init(_ pin: PinIndex, controller: RaspberryGPIOController) {
+        guard let pinSet = PinSet(index: pin) else {
+            fatalError("Pin Must Be 31 or Less")
+        }
+
+        self.pin = pin
+        super.init(pinSet, controller: controller)
+    }
+
+    var mode: PinMode {
+        get { return PinMode(raspberryMode: controller.getMode(for: self.pin)) }
+        set { self.setMode(newValue) }
+    }
+
+    override func setMode(_ mode: PinMode) {
+        controller.setMode(.init(mode: mode), pin: self.pin)
+    }
+}
+
+extension PinMode {
+    init(raspberryMode mode: RaspberryGPIOMode) {
+        switch mode {
+        case .output: self = .output
+        default:      self = .input
         }
     }
 }
