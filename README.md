@@ -158,7 +158,7 @@ pwmChannel.enable(pins: .p18)
 pwmChannel.enable(pins: [.p12, .p18])
 ```
 
-## Build with SingleBoard
+## Built with SingleBoard
 
 #### Libraries
 
