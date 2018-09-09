@@ -25,7 +25,7 @@
  SOFTWARE.)
  */
 
- import Foundation
+import Foundation
 
 class RaspberryPWM: BoardPWM {
     private let gpioMem: RaspberryGPIOMem

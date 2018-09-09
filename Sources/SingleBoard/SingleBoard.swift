@@ -28,7 +28,12 @@
 import Foundation
 
 public struct SingleBoard {
-    public static let raspberryPi: RaspberryPi = { return RaspberryBoard() }()
+    public static let raspberryPi: RaspberryCapabilities = { return RaspberryBoard() }()
+
+    public static let pine64: PineCapabilities = { return Pine64Board() }()
+    public static let rock64: PineCapabilities = { return Rock64Board() }()
+
+    public static let chip: ChipCapabilities = { return ChipBoard() }()
 }
 
 //
@@ -36,25 +41,18 @@ public struct SingleBoard {
 //
 // By splitting out capabilities, it is possible to avoid including optionals,
 // and enforce consistent behavior at the same time.
-public typealias RaspberryPi = HasGPIO & HasI2C & HasPWM
-
-public protocol HasGPIO: class {
-    var gpio: BoardGPIO { get }
-}
-
-public protocol HasI2C: class {
-    var i2cMainBus: BoardI2CBus { get }
-    var i2cBus: BoardI2CBusSet { get }
-}
-
-public protocol HasPWM: class {
-    var pwm: BoardPWM { get }
-}
+public typealias RaspberryCapabilities = HasGPIO & HasI2C & HasPWM
+public typealias PineCapabilities      = HasI2C
+public typealias ChipCapabilities      = HasI2C 
 
 //
 // MARK: GPIO Access
 //
 // More Types in Common/GPIO.swift
+public protocol HasGPIO: class {
+    var gpio: BoardGPIO { get }
+}
+
 public protocol BoardGPIO: class {
     subscript(pins: PinSet) -> BoardGPIOPinSet { get }
     subscript(pin: PinIndex) -> BoardGPIOPin { get }
@@ -78,11 +76,18 @@ public protocol BoardGPIOPinSet: class {
 // MARK: I2C Access
 //
 // More Convenience Extensions in Common/I2C.swift
+public protocol HasI2C: class {
+    var i2cMainBus: BoardI2CBus { get }
+    var i2cBus: BoardI2CBusSet { get }
+}
+
 public protocol BoardI2CBusSet: class {
     subscript(busIndex: Int) -> BoardI2CBus? { get }
 }
 
 public protocol BoardI2CBus: class {
+    var busId: Int { get }
+
     func isReachable(address: UInt8) -> Bool
 
     subscript(address: UInt8) -> BoardI2CEndpoint { get }
@@ -106,6 +111,10 @@ public protocol BoardI2CEndpoint: class {
 //
 // MARK: PWM Access
 //
+public protocol HasPWM: class {
+    var pwm: BoardPWM { get }
+}
+
 public protocol BoardPWM: class {
     var count: Int { get }
 
