@@ -119,7 +119,7 @@ class SysI2CBoard: BoardI2CBusSet {
     let mainBus: BoardI2CBus
     private let buses: [Int: BoardI2CBus]
 
-    init(range: ClosedRange<Int>, mainBus: BoardI2CBus) {
+    init(range: CountableClosedRange<Int>, mainBus: BoardI2CBus) {
         var buses: [Int: BoardI2CBus] = [:]
         for index in range {
             if mainBus.busId == index {
