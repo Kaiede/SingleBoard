@@ -33,20 +33,26 @@
 
 import Foundation
 
-class RaspberryBoard: Board {
-    public lazy var gpio: BoardGPIO? = {
+class RaspberryBoard: RaspberryPi {
+
+    public lazy var gpio: BoardGPIO = {
         return RaspberryGPIOController(gpioMem: self.gpioMem)
     }()
-    
-    public let i2c: BoardI2C? = {
-        let i2c: [Int: BoardI2CController] = [
-            0: SysI2CController(channel: 0),
-            1: SysI2CController(channel: 1)
+
+    public let i2cMainBus: BoardI2CBus = {
+        return SySI2CBus(busIndex: 1)
+    }()
+
+    public private(set) lazy var i2cBus: BoardI2CBusSet = {
+        let mainBus: BoardI2CBus = SySI2CBus(busIndex: 1)
+        let i2c: [Int: BoardI2CBus] = [
+            0: SySI2CBus(busIndex: 0),
+            1: self.i2cMainBus
         ]
-        return SysI2CBoard(controllers: i2c)
+        return SysI2CBoard(buses: i2c, mainBus: mainBus)
     }()
     
-    public lazy var pwm: BoardPWM? = {
+    public lazy var pwm: BoardPWM = {
         return RaspberryPWM(gpioMem: self.gpioMem, secureMem: self.secureMem)
     }()
     

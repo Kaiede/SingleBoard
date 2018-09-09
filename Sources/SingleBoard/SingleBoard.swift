@@ -28,16 +28,27 @@
 import Foundation
 
 public struct SingleBoard {
-    public static let raspberryPi: Board = { return RaspberryBoard() }()
+    public static let raspberryPi: RaspberryPi = { return RaspberryBoard() }()
 }
 
 //
-// MARK: The Root Of It All
+// MARK: Board Capabilities
 //
-public protocol Board: class {
-    var gpio: BoardGPIO? { get }
-    var i2c: BoardI2C? { get }
-    var pwm: BoardPWM? { get }
+// By splitting out capabilities, it is possible to avoid including optionals,
+// and enforce consistent behavior at the same time.
+public typealias RaspberryPi = HasGPIO & HasI2C & HasPWM
+
+public protocol HasGPIO: class {
+    var gpio: BoardGPIO { get }
+}
+
+public protocol HasI2C: class {
+    var i2cMainBus: BoardI2CBus { get }
+    var i2cBus: BoardI2CBusSet { get }
+}
+
+public protocol HasPWM: class {
+    var pwm: BoardPWM { get }
 }
 
 //
@@ -67,14 +78,14 @@ public protocol BoardGPIOPinSet: class {
 // MARK: I2C Access
 //
 // More Convenience Extensions in Common/I2C.swift
-public protocol BoardI2C: class {
-    subscript(channel: Int) -> BoardI2CController? { get }
+public protocol BoardI2CBusSet: class {
+    subscript(busIndex: Int) -> BoardI2CBus? { get }
 }
 
-public protocol BoardI2CController: class {
-    func isReachable(address: Int) -> Bool
+public protocol BoardI2CBus: class {
+    func isReachable(address: UInt8) -> Bool
 
-    subscript(address: Int) -> BoardI2CEndpoint { get }
+    subscript(address: UInt8) -> BoardI2CEndpoint { get }
 }
 
 public protocol BoardI2CEndpoint: class {

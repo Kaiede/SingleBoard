@@ -115,19 +115,21 @@ public extension BoardI2CEndpoint {
 
 // This would normally be easier in Swift 4:
 // extension Dictionary: BoardI2C where Key == Int, Value == BoardI2CChannel {}
-class SysI2CBoard: BoardI2C {
-    private let controllers: [Int: BoardI2CController]
+class SysI2CBoard: BoardI2CBusSet {
+    let mainBus: BoardI2CBus
+    private let buses: [Int: BoardI2CBus]
 
-    init(controllers: [Int: BoardI2CController]) {
-        self.controllers = controllers
+    init(buses: [Int: BoardI2CBus], mainBus: BoardI2CBus) {
+        self.buses = buses
+        self.mainBus = mainBus
     }
 
-    subscript(channel: Int) -> BoardI2CController? {
-        return controllers[channel]
+    subscript(busIndex: Int) -> BoardI2CBus? {
+        return buses[busIndex]
     }
 }
 
-public final class SysI2CController: BoardI2CController {
+public final class SySI2CBus: BoardI2CBus {
     private static let I2C_SLAVE: UInt = 0x703
     private static let I2C_SLAVE_FORCE: UInt = 0x706
     private static let I2C_RDWR: UInt = 0x707
@@ -135,13 +137,13 @@ public final class SysI2CController: BoardI2CController {
     private static let I2C_SMBUS: UInt = 0x720
     private static let I2C_MAX_LENGTH: Int = 32
 
-    private let channel: Int
+    private let busIndex: Int
     private var fdI2C: Int32 = -1
-    private var currentEndpoint: Int?
-    private var activeEndpoints: [Int: BoardI2CEndpoint] = [:]
+    private var currentEndpoint: UInt8?
+    private var activeEndpoints: [UInt8: BoardI2CEndpoint] = [:]
 
-    public init(channel: Int) {
-        self.channel = channel
+    public init(busIndex: Int) {
+        self.busIndex = busIndex
     }
 
     deinit {
@@ -150,11 +152,11 @@ public final class SysI2CController: BoardI2CController {
         }
     }
 
-    public func isReachable(address: Int) -> Bool {
+    public func isReachable(address: UInt8) -> Bool {
         return self[address].reachable
     }
 
-    public subscript(address: Int) -> BoardI2CEndpoint {
+    public subscript(address: UInt8) -> BoardI2CEndpoint {
         if let endpoint = self.activeEndpoints[address] {
             return endpoint
         }
@@ -165,7 +167,7 @@ public final class SysI2CController: BoardI2CController {
     }
 
     fileprivate func openChannel() {
-        let filePath: String = "/dev/i2c-\(self.channel)"
+        let filePath: String = "/dev/i2c-\(self.busIndex)"
 
         let fdI2C = open(filePath, O_RDWR)
         guard fdI2C > 0 else {
@@ -175,14 +177,14 @@ public final class SysI2CController: BoardI2CController {
         self.fdI2C = fdI2C
     }
 
-    fileprivate func setCurrentEndpoint(to address: Int) {
+    fileprivate func setCurrentEndpoint(to address: UInt8) {
         if self.fdI2C == -1 {
             self.openChannel()
         }
 
         guard self.currentEndpoint != address else { return }
 
-        let result = ioctl(fdI2C, SysI2CController.I2C_SLAVE_FORCE, CInt(address))
+        let result = ioctl(fdI2C, SySI2CBus.I2C_SLAVE_FORCE, CInt(address))
         guard result == 0 else {
             fatalError()
         }
@@ -192,21 +194,21 @@ public final class SysI2CController: BoardI2CController {
 
     // MARK: Read/Write Data
     fileprivate func readByte(from command: UInt8) -> UInt8? {
-        var data = [UInt8](repeating:0, count: SysI2CController.I2C_MAX_LENGTH+1)
+        var data = [UInt8](repeating:0, count: SySI2CBus.I2C_MAX_LENGTH+1)
 
         guard smbusIoctl(.read, command: command, dataKind: .byteData, data: &data) else { return nil }
         return data[0]
     }
 
     fileprivate func readWord(from command: UInt8) -> UInt16? {
-        var data = [UInt8](repeating:0, count: SysI2CController.I2C_MAX_LENGTH+1)
+        var data = [UInt8](repeating:0, count: SySI2CBus.I2C_MAX_LENGTH+1)
 
         guard smbusIoctl(.read, command: command, dataKind: .wordData, data: &data) else { return nil }
         return (UInt16(data[1]) << 8) + UInt16(data[0])
     }
 
     fileprivate func readByteArray(from command: UInt8) -> [UInt8]? {
-        var data = [UInt8](repeating:0, count: SysI2CController.I2C_MAX_LENGTH+1)
+        var data = [UInt8](repeating:0, count: SySI2CBus.I2C_MAX_LENGTH+1)
 
         guard smbusIoctl(.read, command: command, dataKind: .blockData, data: &data) else { return nil }
         let lenData = Int(data[0])
@@ -222,7 +224,7 @@ public final class SysI2CController: BoardI2CController {
     }
 
     fileprivate func writeByte(to command: UInt8, value: UInt8) -> Bool {
-        var data = [UInt8](repeating:0, count: SysI2CController.I2C_MAX_LENGTH+1)
+        var data = [UInt8](repeating:0, count: SySI2CBus.I2C_MAX_LENGTH+1)
 
         data[0] = value
         guard smbusIoctl(.write, command: command, dataKind: .byteData, data: &data) else { return false }
@@ -230,7 +232,7 @@ public final class SysI2CController: BoardI2CController {
     }
 
     fileprivate func writeWord(to command: UInt8, value: UInt16) -> Bool {
-        var data = [UInt8](repeating:0, count: SysI2CController.I2C_MAX_LENGTH+1)
+        var data = [UInt8](repeating:0, count: SySI2CBus.I2C_MAX_LENGTH+1)
 
         data[0] = UInt8(value & 0xFF)
         data[1] = UInt8(value >> 8)
@@ -240,8 +242,8 @@ public final class SysI2CController: BoardI2CController {
     }
 
     fileprivate func writeByteArray(to command: UInt8, value: [UInt8]) -> Bool {
-        guard value.count <= SysI2CController.I2C_MAX_LENGTH else { return false }
-        var data = [UInt8](repeating:0, count: SysI2CController.I2C_MAX_LENGTH+1)
+        guard value.count <= SySI2CBus.I2C_MAX_LENGTH else { return false }
+        var data = [UInt8](repeating:0, count: SySI2CBus.I2C_MAX_LENGTH+1)
 
         for i in 1...value.count {
             data[i] = value[i - 1]
@@ -257,7 +259,7 @@ public final class SysI2CController: BoardI2CController {
         }
 
         var args = SMBusData(readOrWrite, command: command, dataKind: dataKind, data: data)
-        guard ioctl(self.fdI2C, SysI2CController.I2C_SMBUS, &args) >= 0 else { 
+        guard ioctl(self.fdI2C, SySI2CBus.I2C_SMBUS, &args) >= 0 else { 
             print("I2C_SMBUS Error: \(errno)")
             return false
                 }
@@ -266,10 +268,10 @@ public final class SysI2CController: BoardI2CController {
 }
 
 public final class SysI2CEndpoint: BoardI2CEndpoint {
-    private let address: Int
-    private let controller: SysI2CController
+    private let address: UInt8
+    private let controller: SySI2CBus
 
-    init(address: Int, controller: SysI2CController) {
+    init(address: UInt8, controller: SySI2CBus) {
         self.address = address
         self.controller = controller
     }
