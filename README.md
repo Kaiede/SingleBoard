@@ -54,7 +54,7 @@ while true {
 }
 ```
 
-Things can go further, say I wanted to do this for 4 pins at the same time. SingleBoard supports the idea of pin sets to interact with a set of pins instead of just a single pin. The interface is different in subtle ways, but very similar: 
+Things can go further, say you wanted to do this for 4 pins at the same time. SingleBoard supports the idea of pin sets to interact with a set of pins instead of just a single pin. The interface is different in subtle ways, but very similar: 
 
 ```Swift
 let gpios = SingleBoard.raspberryPi.gpio
