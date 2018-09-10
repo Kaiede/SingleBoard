@@ -13,7 +13,7 @@ GPIO Library for Single Board Computers built in Swift.
 
 ## About the Project
 
-This library is heavily based on [SwiftyGPIO](https://github.com/uraimo/SwiftyGPIO). The reason for rewriting is to try to improve the readability and maintainability of the code by strengthening type safety when interacting with hardware registers, and streamling the developer interaction. This was proving difficult and slow work to do in place.  
+This library is heavily based on [SwiftyGPIO](https://github.com/uraimo/SwiftyGPIO). The reason for rewriting is to try to improve the readability and maintainability of the code by strengthening type safety when interacting with hardware registers, and streamling the developer interaction. Doing it as a re-write was proving to be faster and easier to test than attempting to refactor it in-place.   
 
 - [Supported Boards](#supported-boards)
 - [Usage](#usage)
