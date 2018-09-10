@@ -84,7 +84,7 @@ gpios[[.p12, .p13, .p18, .p19]].setPullup(.down)
 
 #### I2C
 
-This is a brief example that writes to a device at address `0x40`, to write a `1` at offset `0x06`. 
+This is a brief example that writes to a device at address `0x40`, to write a `1` at offset `0x06`.
 
 ```Swift
 // Get a connection for a device with address 0x40 on the board's primary bus
@@ -93,6 +93,10 @@ let i2cDevice = SingleBoard.raspberryPi.i2cMainBus[0x40]
 
 i2cDevice.writeByte(to: 0x06, value: 1)
 ```
+
+A board's main bus is considered to be the one that is primarily for use by those developing on the single board computer, and not for the system's use. 
+
+On the Raspberry Pi, bus 0 is used by the system for a handful of things including identifying HATs. Bus 1 is exposed on pins 3 & 5 for use by tinkerers, and so bus 1 is considered the main bus. On the Rock 64, it's the opposite. Bus 0 is exposed on pins 3 & 5, while bus 1 is used for HATs and system devices. The Pine A64 is like the Raspberry Pi. By exposing the main bus as a property, it makes it a bit easier to write code that can handle multiple similar boards. 
 
 The full set of basic read/write functionality is the following:
 
