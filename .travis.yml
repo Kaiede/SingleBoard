@@ -1,14 +1,11 @@
 
 matrix:
-  allow_failures:
-    - os: linux
-      env: SWIFT_BRANCH=swift-4.1.2-release
-      
   include:
     - name: "Linux Swift 3.1.1"
       os: linux
       language: generic
       dist: trusty
+      sudo: required
       env:
         - SWIFT_BRANCH=swift-3.1.1-release
         - SWIFT_VERSION=swift-3.1.1-RELEASE
@@ -16,40 +13,45 @@ matrix:
         - mkdir swift
         - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar -xz -C swift
         - export PATH="$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH"
-    
-    - name: "Linux Swift 4.1.1"
+
+    - name: "Linux Swift 4.1.3"
       os: linux
       language: generic
       dist: trusty
+      sudo: required
       env:
-        - SWIFT_BRANCH=swift-4.1.1-release
-        - SWIFT_VERSION=swift-4.1.1-RELEASE
+        - SWIFT_BRANCH=swift-4.1.3-release
+        - SWIFT_VERSION=swift-4.1.3-RELEASE
       install:
         - mkdir swift
         - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar -xz -C swift
         - export PATH="$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH"
         
-    - name: "Linux Swift 4.1.2"
+    - name: "Linux Swift 4.2"
       os: linux
       language: generic
       dist: trusty
+      sudo: required
       env:
-        - SWIFT_BRANCH=swift-4.1.2-release
-        - SWIFT_VERSION=swift-4.1.2-RELEASE
+        - SWIFT_BRANCH=swift-4.2-release
+        - SWIFT_VERSION=swift-4.2-RELEASE
       install:
         - mkdir swift
         - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar -xz -C swift
         - export PATH="$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH"
 
-    - name: "Mac Xcode 9.4"
+    - name: "Mac Xcode 9"
       os: osx
       osx_image: xcode9.4
       language: generic
-
+      sudo: required
+      
     - name: "Mac Xcode 10"
       os: osx
       osx_image: xcode10
       language: generic
+      sudo: required
+
 
 script:
   - swift package reset
