@@ -93,19 +93,42 @@ public protocol BoardI2CBus: class {
     subscript(address: UInt8) -> BoardI2CEndpoint { get }
 }
 
+public protocol I2CReadable
+{
+    init(i2cBuffer: [UInt8])
+    static var i2cReadLength: Int { get }
+}
+
+public protocol I2CWritable
+{
+    func encodeToBuffer() -> [UInt8]
+}
+
+public protocol I2CReadWritable: I2CReadable, I2CWritable {}
+
 public protocol BoardI2CEndpoint: class {
     var reachable: Bool { get }
 
+    // Generic I2C
     func readByte() -> UInt8
+    func readWord() -> UInt16
+    func decode<T: I2CReadable>() -> T
+
+    func writeByte(value: UInt8)
+    func writeWord(value: UInt16)
+    func encode<T: I2CWritable>(value: T)
+
+    // SMBus
     func readByte(from: UInt8) -> UInt8
     func readWord(from: UInt8) -> UInt16
-    func readByteArray(from: UInt8) -> [UInt8]
+    func decode<T: I2CReadable>(from: UInt8) -> T
+    func readByteArray(from: UInt8) -> [UInt8] // DEPRECATED
 
     func writeQuick()
-    func writeByte(value: UInt8)
     func writeByte(to: UInt8, value: UInt8)
     func writeWord(to: UInt8, value: UInt16)
-    func writeByteArray(to: UInt8, value: [UInt8])
+    func encode<T: I2CWritable>(to: UInt8, value: T)
+    func writeByteArray(to: UInt8, value: [UInt8]) // DEPRECATED
 }
 
 //
