@@ -27,11 +27,13 @@ final class SingleBoardTests: XCTestCase {
     enum TestWord: UInt16 {
         case testSetting = 0xF0F0
     }
+    
 
     class MockI2CEndpoint: BoardI2CEndpoint {
         var lastCommand: UInt8 = 0
         var bufferByte: UInt8 = 0
         var bufferWord: UInt16 = 0
+        var rawBuffer: [UInt8] = []
         
         var reachable: Bool {
             return true
@@ -40,6 +42,26 @@ final class SingleBoardTests: XCTestCase {
         func readByte() -> UInt8 {
             return bufferByte
         }
+
+        func readWord() -> UInt16 {
+            return bufferWord
+        }
+
+        public func decode<T: I2CReadable>() -> T {
+            return T(i2cBuffer: rawBuffer)
+        }
+
+        func writeByte(value: UInt8) {
+            self.bufferByte = value
+        }
+
+        func writeWord(value: UInt16) {
+            self.bufferWord = value
+        }
+
+        public func encode<T: I2CWritable>(value: T) {
+            self.rawBuffer = value.encodeToBuffer()
+        } 
         
         func readByte(from command: UInt8) -> UInt8 {
             self.lastCommand = command
@@ -50,6 +72,11 @@ final class SingleBoardTests: XCTestCase {
             self.lastCommand = command
             return bufferWord
         }
+
+        public func decode<T: I2CReadable>(from command: UInt8) -> T {
+            self.lastCommand = command
+            return T(i2cBuffer: self.rawBuffer)
+        }
         
         func readByteArray(from command: UInt8) -> [UInt8] {
             self.lastCommand = command
@@ -57,10 +84,6 @@ final class SingleBoardTests: XCTestCase {
         }
         
         func writeQuick() {}
-        
-        func writeByte(value: UInt8) {
-            self.bufferByte = value
-        }
         
         func writeByte(to command: UInt8, value: UInt8) {
             self.lastCommand = command
@@ -70,6 +93,11 @@ final class SingleBoardTests: XCTestCase {
         func writeWord(to command: UInt8, value: UInt16) {
             self.lastCommand = command
             self.bufferWord = value
+        }
+
+        public func encode<T: I2CWritable>(to command: UInt8, value: T) {
+            self.lastCommand = command
+            self.rawBuffer = value.encodeToBuffer()
         }
         
         func writeByteArray(to command: UInt8, value: [UInt8]) {
