@@ -27,13 +27,13 @@ final class SingleBoardTests: XCTestCase {
     enum TestWord: UInt16 {
         case testSetting = 0xF0F0
     }
-    
+
 
     class MockI2CEndpoint: BoardI2CEndpoint {
         var lastCommand: UInt8 = 0
         var bufferByte: UInt8 = 0
         var bufferWord: UInt16 = 0
-        var rawBuffer: [UInt8] = []
+        var bufferData: Data = Data()
         
         var reachable: Bool {
             return true
@@ -47,8 +47,12 @@ final class SingleBoardTests: XCTestCase {
             return bufferWord
         }
 
+        func readData(length: Int) -> Data {
+            return bufferData
+        }
+
         public func decode<T: I2CReadable>() -> T {
-            return T(i2cBuffer: rawBuffer)
+            return T(data: bufferData)
         }
 
         func writeByte(value: UInt8) {
@@ -59,49 +63,54 @@ final class SingleBoardTests: XCTestCase {
             self.bufferWord = value
         }
 
+        func writeData(value: Data) {
+            self.bufferData = value
+        }
+
         public func encode<T: I2CWritable>(value: T) {
-            self.rawBuffer = value.encodeToBuffer()
+            self.bufferData = value.encodeToData()
         } 
         
-        func readByte(from command: UInt8) -> UInt8 {
+        func readByte(command: UInt8) -> UInt8 {
             self.lastCommand = command
             return bufferByte
         }
         
-        func readWord(from command: UInt8) -> UInt16 {
+        func readWord(command: UInt8) -> UInt16 {
             self.lastCommand = command
             return bufferWord
         }
 
-        public func decode<T: I2CReadable>(from command: UInt8) -> T {
+        func readData(command: UInt8) -> Data {
             self.lastCommand = command
-            return T(i2cBuffer: self.rawBuffer)
+            return bufferData
         }
-        
-        func readByteArray(from command: UInt8) -> [UInt8] {
+
+        public func decode<T: I2CReadable>(command: UInt8) -> T {
             self.lastCommand = command
-            return []
+            return T(data: bufferData)
         }
         
         func writeQuick() {}
         
-        func writeByte(to command: UInt8, value: UInt8) {
+        func writeByte(command: UInt8, value: UInt8) {
             self.lastCommand = command
             self.bufferByte = value
         }
         
-        func writeWord(to command: UInt8, value: UInt16) {
+        func writeWord(command: UInt8, value: UInt16) {
             self.lastCommand = command
             self.bufferWord = value
         }
 
-        public func encode<T: I2CWritable>(to command: UInt8, value: T) {
+        func writeData(command: UInt8, value: Data) {
             self.lastCommand = command
-            self.rawBuffer = value.encodeToBuffer()
+            self.bufferData = value
         }
-        
-        func writeByteArray(to command: UInt8, value: [UInt8]) {
+
+        public func encode<T: I2CWritable>(command: UInt8, value: T) {
             self.lastCommand = command
+            self.bufferData = value.encodeToData()
         }
     }
     
@@ -112,11 +121,11 @@ final class SingleBoardTests: XCTestCase {
         mockEndpoint.bufferByte = 0xA5
         mockEndpoint.bufferWord = 0xF0F0
 
-        let testByte: TestByte? = mockEndpoint.read(from: TestCommand.commandOne)
+        let testByte: TestByte? = mockEndpoint.read(command: TestCommand.commandOne)
         XCTAssertEqual(testByte, .testSetting)
         XCTAssertEqual(mockEndpoint.lastCommand, TestCommand.commandOne.rawValue)
 
-        let testWord: TestWord? = mockEndpoint.read(from: TestCommand.commandTwo)
+        let testWord: TestWord? = mockEndpoint.read(command: TestCommand.commandTwo)
         XCTAssertEqual(testWord, .testSetting)
         XCTAssertEqual(mockEndpoint.lastCommand, TestCommand.commandTwo.rawValue)
     }
@@ -127,11 +136,11 @@ final class SingleBoardTests: XCTestCase {
         mockEndpoint.bufferByte = 0x10
         mockEndpoint.bufferWord = 0x1000
 
-        let testByte: TestOptionByte = mockEndpoint.read(from: TestCommand.commandOne)
+        let testByte: TestOptionByte = mockEndpoint.read(command: TestCommand.commandOne)
         XCTAssertEqual(testByte, .testSetting)
         XCTAssertEqual(mockEndpoint.lastCommand, TestCommand.commandOne.rawValue)
 
-        let testWord: TestOptionWord = mockEndpoint.read(from: TestCommand.commandTwo)
+        let testWord: TestOptionWord = mockEndpoint.read(command: TestCommand.commandTwo)
         XCTAssertEqual(testWord, .testSetting)
         XCTAssertEqual(mockEndpoint.lastCommand, TestCommand.commandTwo.rawValue)
     }
@@ -139,11 +148,11 @@ final class SingleBoardTests: XCTestCase {
     func testWriteWithEnums() {
         let mockEndpoint = MockI2CEndpoint()
 
-        mockEndpoint.write(to: TestCommand.commandOne, value: TestOptionByte.testSetting)
+        mockEndpoint.write(command: TestCommand.commandOne, value: TestOptionByte.testSetting)
         XCTAssertEqual(mockEndpoint.bufferByte, 0x10)
         XCTAssertEqual(mockEndpoint.lastCommand, 1)
 
-        mockEndpoint.write(to: TestCommand.commandTwo, value: TestOptionWord.testSetting)
+        mockEndpoint.write(command: TestCommand.commandTwo, value: TestOptionWord.testSetting)
         XCTAssertEqual(mockEndpoint.bufferWord, 0x1000)
         XCTAssertEqual(mockEndpoint.lastCommand, 2)
     }
