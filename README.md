@@ -103,18 +103,32 @@ The full set of basic read/write functionality is the following:
 ```Swift
     var reachable: Bool { get }
 
+    //
+    // I2C API
+    //
     func readByte() -> UInt8
-    func readByte(from: UInt8) -> UInt8
-    func readWord(from: UInt8) -> UInt16
-    func readByteArray(from: UInt8) -> [UInt8]
-    func readData(from command: UInt8) -> Data
+    func readWord() -> UInt16
+    func readData(length: Int) -> Data
+    func decode<T: I2CReadable>() -> T
+
+    func writeByte(value: UInt8)
+    func writeWord(value: UInt16)
+    func writeData(value: Data)
+    func encode<T: I2CWritable>(value: T)
+
+    //
+    // SMBus
+    //
+    func readByte(command: UInt8) -> UInt8
+    func readWord(command: UInt8) -> UInt16
+    func readData(command: UInt8) -> Data
+    func decode<T: I2CReadable>(command: UInt8) -> T
 
     func writeQuick()
-    func writeByte(value: UInt8)
-    func writeByte(to: UInt8, value: UInt8)
-    func writeWord(to: UInt8, value: UInt16)
-    func writeByteArray(to: UInt8, value: [UInt8])
-    func writeData(to command: UInt8, value: Data)
+    func writeByte(command: UInt8, value: UInt8)
+    func writeWord(command: UInt8, value: UInt16)
+    func writeData(command: UInt8, value: Data)
+    func encode<T: I2CWritable>(command: UInt8, value: T)
 ```
     
 But in addition to this, there is also support for handling types that conform to `RawRepresentable` and `OptionSet` automatically. For example, any RawRepresentable that is backed by a UInt8 can be used to read or write bytes and words:
@@ -122,7 +136,7 @@ But in addition to this, there is also support for handling types that conform t
 ```Swift
 enum MyDeviceRegisters: UInt8, RawRepresentable { /* ... */ }
 
-i2cDevice.writeByte(to: MyDeviceRegisters.control, value: 0x48)
+i2cDevice.writeByte(command: MyDeviceRegisters.control, value: 0x48)
 ```
 
 Taken a step further, you can also use `RawRepresentable` and `OptionSet` as the bytes or words themselves if they are backed by `UInt8` or `UInt16`:
@@ -136,10 +150,18 @@ struct MyControlRegister: OptionSet {
 }
 
 let controlValue: MyControlRegister = [.sleep, .reset]
-i2cDevice.write(to: MyDeviceRegisters.control, value: controlValue)
+i2cDevice.write(command: MyDeviceRegisters.control, value: controlValue)
 ```
 
-The idea here is to make it a bit easier to use more restrictive types to represent the values to be read and written when interacting with the I2C device. This is demonstrated in the [PCA9685](https://github.com/Kaiede/PCA9685) library. 
+For more complex types, there's protocols that you can implement to enable calling `encode` and `decode` on the endpoint with your own types. These leverage `Data` for storing the buffers, but make it possible to keep code a little cleaner.
+
+```Swift
+protocol I2CReadable { /* ... */ }
+protocol I2CWritable { /* ... */ }
+protocol I2CReadWritable { /* ... */ }
+```
+
+The idea here is to make it a bit easier to use more restrictive types to represent the values to be read and written when interacting with the I2C device. This is demonstrated in the [PCA9685](https://github.com/Kaiede/PCA9685) and [MCP4725](https://github.com/Kaiede/PCA9685) libraries. 
 
 #### PWM
 
@@ -167,6 +189,7 @@ pwmChannel.enable(pins: [.p12, .p18])
 #### Libraries
 
 * [PCA9685](https://github.com/Kaiede/PCA9685) - A library for the PCA9685 I2C PWM/Servo controller. (Also available for SwiftyGPIO)
+* [MCP4725](https://github.com/Kaiede/PCA9685) - A library for the MCP4725 I2C DAC chip. 
 
 #### Projects
 

@@ -109,7 +109,9 @@ public protocol I2CReadWritable: I2CReadable, I2CWritable {}
 public protocol BoardI2CEndpoint: class {
     var reachable: Bool { get }
 
-    // Generic I2C
+    //
+    // I2C API
+    //
     func readByte() -> UInt8
     func readWord() -> UInt16
     func readData(length: Int) -> Data
@@ -120,7 +122,9 @@ public protocol BoardI2CEndpoint: class {
     func writeData(value: Data)
     func encode<T: I2CWritable>(value: T)
 
+    //
     // SMBus
+    //
     func readByte(command: UInt8) -> UInt8
     func readWord(command: UInt8) -> UInt16
     func readData(command: UInt8) -> Data
