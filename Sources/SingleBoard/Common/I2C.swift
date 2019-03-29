@@ -278,14 +278,14 @@ public final class SysI2CBus: BoardI2CBus {
         self.currentEndpoint = address
     }
 
-    fileprivate func readByte(from command: UInt8) -> UInt8? {
+    fileprivate func readByte(command: UInt8) -> UInt8? {
         var data = [UInt8](repeating:0, count: SysI2CBus.I2C_MAX_LENGTH+1)
 
         guard smbusIoctl(.read, command: command, dataKind: .byteData, data: &data) else { return nil }
         return data[0]
     }
 
-    fileprivate func readWord(from command: UInt8) -> UInt16? {
+    fileprivate func readWord(command: UInt8) -> UInt16? {
         var data = [UInt8](repeating:0, count: SysI2CBus.I2C_MAX_LENGTH+1)
 
         guard smbusIoctl(.read, command: command, dataKind: .wordData, data: &data) else { return nil }
@@ -304,7 +304,7 @@ public final class SysI2CBus: BoardI2CBus {
         return data
     }
 
-    fileprivate func readByteArray(from command: UInt8) -> [UInt8]? {
+    fileprivate func readByteArray(command: UInt8) -> [UInt8]? {
         var data = [UInt8](repeating:0, count: SysI2CBus.I2C_MAX_LENGTH+1)
 
         guard smbusIoctl(.read, command: command, dataKind: .blockData, data: &data) else { return nil }
@@ -316,7 +316,7 @@ public final class SysI2CBus: BoardI2CBus {
         return smbusIoctl(.write, command: 0, dataKind: .quick, data: nil)
     }
 
-    fileprivate func writeByte(to command: UInt8, value: UInt8) -> Bool {
+    fileprivate func writeByte(command: UInt8, value: UInt8) -> Bool {
         var data = Data(count: MemoryLayout<UInt8>.size)
         data[0] = value
 
@@ -326,7 +326,7 @@ public final class SysI2CBus: BoardI2CBus {
         }
     }
 
-    fileprivate func writeWord(to command: UInt8, value: UInt16) -> Bool {
+    fileprivate func writeWord(command: UInt8, value: UInt16) -> Bool {
         var data = Data(count: MemoryLayout<UInt16>.size)
         data[0] = UInt8(value & 0xFF)
         data[1] = UInt8(value >> 8)
@@ -374,7 +374,7 @@ public final class SysI2CEndpoint: BoardI2CEndpoint {
     public var reachable: Bool {
         controller.setCurrentEndpoint(to: address)
 
-        return controller.readByte(from: 0) != nil
+        return controller.readByte(command: 0) != nil
     }
 
     //
@@ -424,14 +424,14 @@ public final class SysI2CEndpoint: BoardI2CEndpoint {
     public func readByte(command: UInt8) -> UInt8 {
         controller.setCurrentEndpoint(to: address)
 
-        guard let byte = controller.readByte(from: command) else { fatalError() }
+        guard let byte = controller.readByte(command: command) else { fatalError() }
         return byte
     }
 
     public func readWord(command: UInt8) -> UInt16 {
         controller.setCurrentEndpoint(to: address)
 
-        guard let word = controller.readWord(from: command) else { fatalError() }
+        guard let word = controller.readWord(command: command) else { fatalError() }
         return word
     }
 
@@ -458,13 +458,13 @@ public final class SysI2CEndpoint: BoardI2CEndpoint {
     public func writeByte(command: UInt8, value: UInt8) {
         controller.setCurrentEndpoint(to: address)
 
-        guard controller.writeByte(to: command, value: value) else { fatalError() }
+        guard controller.writeByte(command: command, value: value) else { fatalError() }
     }
 
     public func writeWord(command: UInt8, value: UInt16) {
         controller.setCurrentEndpoint(to: address)
 
-        guard controller.writeWord(to: command, value: value) else { fatalError() }
+        guard controller.writeWord(command: command, value: value) else { fatalError() }
     }
 
     public func writeData(command: UInt8, value: Data) {
