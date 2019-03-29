@@ -33,45 +33,31 @@
 
 import Foundation
 
+
 public extension BoardI2CEndpoint {
-    // Convenience for Data
-    func readData(from command: UInt8) -> Data {
-        return Data(bytes: self.readByteArray(from: command))
-    }
-
-    func writeData(to command: UInt8, value: Data) {
-        self.writeByteArray(to: command, value: [UInt8](value))
-    }
-
-    func writeData<T: RawRepresentable>(to command: T, value: Data)
+    // Convenience for RawRepresentable SMBus Commands
+    func readByte<T: RawRepresentable>(command: T) -> UInt8
         where T.RawValue == UInt8
     {
-        self.writeByteArray(to: command.rawValue, value: [UInt8](value))
+        return self.readByte(command: command.rawValue)
     }
     
-    // Convenience for Command Enums
-    func readByte<T: RawRepresentable>(from command: T) -> UInt8
+    func readWord<T: RawRepresentable>(command: T) -> UInt16
         where T.RawValue == UInt8
     {
-        return self.readByte(from: command.rawValue)
+        return self.readWord(command: command.rawValue)
     }
     
-    func readWord<T: RawRepresentable>(from command: T) -> UInt16
+    func writeByte<T: RawRepresentable>(command: T, value: UInt8)
         where T.RawValue == UInt8
     {
-        return self.readWord(from: command.rawValue)
+        return self.writeByte(command: command.rawValue, value: value)
     }
     
-    func writeByte<T: RawRepresentable>(to command: T, value: UInt8)
+    func writeWord<T: RawRepresentable>(command: T, value: UInt16)
         where T.RawValue == UInt8
     {
-        return self.writeByte(to: command.rawValue, value: value)
-    }
-    
-    func writeWord<T: RawRepresentable>(to command: T, value: UInt16)
-        where T.RawValue == UInt8
-    {
-        return self.writeWord(to: command.rawValue, value: value)
+        return self.writeWord(command: command.rawValue, value: value)
     }
     
     // Read in Enums and OptionSets
@@ -87,28 +73,28 @@ public extension BoardI2CEndpoint {
         return T(rawValue: self.readWord())
     }
 
-    func read<T: RawRepresentable, U: RawRepresentable>(from command: T) -> U?
+    func read<T: RawRepresentable, U: RawRepresentable>(command: T) -> U?
         where T.RawValue == UInt8, U.RawValue == UInt8
     {
-        return U(rawValue: self.readByte(from: command.rawValue))
+        return U(rawValue: self.readByte(command: command.rawValue))
     }
 
-    func read<T: RawRepresentable, U: RawRepresentable>(from command: T) -> U?
+    func read<T: RawRepresentable, U: RawRepresentable>(command: T) -> U?
         where T.RawValue == UInt8, U.RawValue == UInt16
     {
-        return U(rawValue: self.readWord(from: command.rawValue))
+        return U(rawValue: self.readWord(command: command.rawValue))
     }
 
-    func read<T: RawRepresentable, U: OptionSet>(from command: T) -> U
+    func read<T: RawRepresentable, U: OptionSet>(command: T) -> U
         where T.RawValue == UInt8, U.RawValue == UInt8
     {
-        return U(rawValue: self.readByte(from: command.rawValue))
+        return U(rawValue: self.readByte(command: command.rawValue))
     }
 
-    func read<T: RawRepresentable, U: OptionSet>(from command: T) -> U
+    func read<T: RawRepresentable, U: OptionSet>(command: T) -> U
         where T.RawValue == UInt8, U.RawValue == UInt16
     {
-        return U(rawValue: self.readWord(from: command.rawValue))
+        return U(rawValue: self.readWord(command: command.rawValue))
     }
 
     // Write Enums and OptionSets
@@ -124,16 +110,16 @@ public extension BoardI2CEndpoint {
         return self.writeWord(value: value.rawValue)
     }
 
-    func write<T: RawRepresentable, U: RawRepresentable>(to command: T, value: U)
+    func write<T: RawRepresentable, U: RawRepresentable>(command: T, value: U)
         where T.RawValue == UInt8, U.RawValue == UInt8
     {
-        return self.writeByte(to: command.rawValue, value: value.rawValue)
+        return self.writeByte(command: command.rawValue, value: value.rawValue)
     }
 
-    func write<T: RawRepresentable, U: RawRepresentable>(to command: T, value: U)
+    func write<T: RawRepresentable, U: RawRepresentable>(command: T, value: U)
         where T.RawValue == UInt8, U.RawValue == UInt16
     {
-        return self.writeWord(to: command.rawValue, value: value.rawValue)
+        return self.writeWord(command: command.rawValue, value: value.rawValue)
     }
 }
 
@@ -228,10 +214,13 @@ public final class SysI2CBus: BoardI2CBus {
         return (UInt16(data[1]) << 8) + UInt16(data[0])
     }
 
-    fileprivate func readByteArray(at address: UInt8, length: UInt8) -> [UInt8]? {
-        var data = [UInt8](repeating:0, count: Int(length))
-        guard i2cIoctl(.read, address: address, length: UInt16(data.count), data: &data) else { return nil }
-        return data
+    fileprivate func readData(at address: UInt8, length: Int) -> Data? {
+        var data = Data(count: length)
+        let success = data.withUnsafeMutableBytes {
+            (dataBuffer) in
+            return i2cIoctl(.read, address: address, length: UInt16(length), data: dataBuffer)
+        }
+        return success ? data : nil
     }
 
     fileprivate func writeByte(at address: UInt8, value: UInt8) -> Bool {
@@ -249,14 +238,15 @@ public final class SysI2CBus: BoardI2CBus {
         return i2cIoctl(.write, address: address, length: 2, data: &data)
     }
 
-    fileprivate func writeByteArray(at address: UInt8, value: [UInt8]) -> Bool {
-        guard value.count <= SysI2CBus.I2C_MAX_LENGTH else { return false }
-
-        var data = value
-        return i2cIoctl(.write, address: address, length: UInt16(value.count), data: &data)
+    fileprivate func writeData(at address: UInt8, value: Data) -> Bool {
+        var internalValue = value
+        return internalValue.withUnsafeMutableBytes {
+            (dataBuffer) in
+            return i2cIoctl(.write, address: address, length: UInt16(value.count), data: dataBuffer)
+        }
     }
 
-    fileprivate func i2cIoctl(_ readOrWrite: SMBusReadWrite, address: UInt8, length: UInt16, data: UnsafeMutablePointer<UInt8>?) -> Bool {
+    private func i2cIoctl(_ readOrWrite: SMBusReadWrite, address: UInt8, length: UInt16, data: UnsafeMutablePointer<UInt8>?) -> Bool {
         if self.fdI2C == -1 {
             self.openChannel()
         }
@@ -302,6 +292,18 @@ public final class SysI2CBus: BoardI2CBus {
         return (UInt16(data[1]) << 8) + UInt16(data[0])
     }
 
+    fileprivate func readData(command: UInt8) -> Data? {
+        var data = Data(count: SysI2CBus.I2C_MAX_LENGTH+1)
+        let success = data.withUnsafeMutableBytes {
+            (dataBuffer) in
+            return smbusIoctl(.read, command: command, dataKind: .blockData, data: dataBuffer)
+        }
+        guard success else { return nil }
+        guard let length = data.popFirst() else { return nil }
+        data.removeSubrange(Int(length)...data.count)
+        return data
+    }
+
     fileprivate func readByteArray(from command: UInt8) -> [UInt8]? {
         var data = [UInt8](repeating:0, count: SysI2CBus.I2C_MAX_LENGTH+1)
 
@@ -315,36 +317,38 @@ public final class SysI2CBus: BoardI2CBus {
     }
 
     fileprivate func writeByte(to command: UInt8, value: UInt8) -> Bool {
-        var data = [UInt8](repeating:0, count: SysI2CBus.I2C_MAX_LENGTH+1)
-
+        var data = Data(count: MemoryLayout<UInt8>.size)
         data[0] = value
-        guard smbusIoctl(.write, command: command, dataKind: .byteData, data: &data) else { return false }
-        return true
+
+        return data.withUnsafeMutableBytes {
+            (dataBuffer) in
+            return smbusIoctl(.write, command: command, dataKind: .byteData, data: dataBuffer)
+        }
     }
 
     fileprivate func writeWord(to command: UInt8, value: UInt16) -> Bool {
-        var data = [UInt8](repeating:0, count: SysI2CBus.I2C_MAX_LENGTH+1)
-
+        var data = Data(count: MemoryLayout<UInt16>.size)
         data[0] = UInt8(value & 0xFF)
         data[1] = UInt8(value >> 8)
 
-        guard smbusIoctl(.write, command: command, dataKind: .wordData, data: &data) else { return false }
-        return true
-    }
-
-    fileprivate func writeByteArray(to command: UInt8, value: [UInt8]) -> Bool {
-        guard value.count <= SysI2CBus.I2C_MAX_LENGTH else { return false }
-        var data = [UInt8](repeating:0, count: SysI2CBus.I2C_MAX_LENGTH+1)
-
-        for i in 1...value.count {
-            data[i] = value[i - 1]
+        return data.withUnsafeMutableBytes {
+            (dataBuffer) in
+            return smbusIoctl(.write, command: command, dataKind: .wordData, data: dataBuffer)
         }
-        data[0] = UInt8(value.count)
-        guard smbusIoctl(.write, command: command, dataKind: .blockData, data: &data) else { return false }
-        return true
     }
 
-    fileprivate func smbusIoctl(_ readOrWrite: SMBusReadWrite, command: UInt8, dataKind: SMBusDataKind, data: UnsafeMutablePointer<UInt8>?) -> Bool {
+    fileprivate func writeData(command: UInt8, value: Data) -> Bool {
+        guard value.count <= SysI2CBus.I2C_MAX_LENGTH else { return false }
+        var data = Data(capacity: value.count + 1)
+        data.append(UInt8(value.count))
+        data.append(data)
+        return data.withUnsafeMutableBytes {
+            (dataBuffer) in
+            return smbusIoctl(.write, command: command, dataKind: .blockData, data: dataBuffer)
+        }
+    }
+
+    private func smbusIoctl(_ readOrWrite: SMBusReadWrite, command: UInt8, dataKind: SMBusDataKind, data: UnsafeMutablePointer<UInt8>?) -> Bool {
         if self.fdI2C == -1 {
             self.openChannel()
         }
@@ -387,14 +391,14 @@ public final class SysI2CEndpoint: BoardI2CEndpoint {
         return word
     }
 
-    fileprivate func readByteArray(length: UInt8) -> [UInt8] {
-        guard let data = controller.readByteArray(at: address, length: length) else { fatalError() }
+    public func readData(length: Int) -> Data {
+        guard let data = controller.readData(at: address, length: length) else { fatalError() }
         return data
     }
 
     public func decode<T: I2CReadable>() -> T {
-        guard let data = controller.readByteArray(at: address, length: UInt8(T.i2cReadLength)) else { fatalError() }
-        return T(i2cBuffer: data)
+        guard let data = controller.readData(at: address, length: T.dataLength) else { fatalError() }
+        return T(data: data)
     }
 
     public func writeByte(value: UInt8) {
@@ -405,44 +409,44 @@ public final class SysI2CEndpoint: BoardI2CEndpoint {
         guard controller.writeWord(at: address, value: value) else { fatalError() }
     }
 
-    fileprivate func writeByteArray(value: [UInt8]) {
-        guard controller.writeByteArray(at: address, value: value) else { fatalError() }
+    public func writeData(value: Data) {
+        guard controller.writeData(at: address, value: value) else { fatalError() }
     }
 
     public func encode<T>(value: T) where T : I2CWritable {
-        guard controller.writeByteArray(at: address, value: value.encodeToBuffer()) else { fatalError() }
+        guard controller.writeData(at: address, value: value.encodeToData()) else { fatalError() }
     }
 
     //
     // SMBus
     //
 
-    public func readByte(from command: UInt8) -> UInt8 {
+    public func readByte(command: UInt8) -> UInt8 {
         controller.setCurrentEndpoint(to: address)
 
         guard let byte = controller.readByte(from: command) else { fatalError() }
         return byte
     }
 
-    public func readWord(from command: UInt8) -> UInt16 {
+    public func readWord(command: UInt8) -> UInt16 {
         controller.setCurrentEndpoint(to: address)
 
         guard let word = controller.readWord(from: command) else { fatalError() }
         return word
     }
 
-    public func readByteArray(from command: UInt8) -> [UInt8] {
+    public func readData(command: UInt8) -> Data {
         controller.setCurrentEndpoint(to: address)
 
-        guard let byteArray = controller.readByteArray(from: command) else { fatalError() }
-        return byteArray
+        guard let data = controller.readData(command: command) else { fatalError() }
+        return data
     }
 
-    public func decode<T: I2CReadable>(from command: UInt8) -> T {
+    public func decode<T: I2CReadable>(command: UInt8) -> T {
         controller.setCurrentEndpoint(to: address)
 
-        guard let byteArray = controller.readByteArray(from: command) else { fatalError() }
-        return T(i2cBuffer: byteArray)
+        guard let data = controller.readData(command: command) else { fatalError() }
+        return T(data: data)
     }
 
     public func writeQuick() {
@@ -451,28 +455,28 @@ public final class SysI2CEndpoint: BoardI2CEndpoint {
         guard controller.writeQuick() else { fatalError() }
     }
 
-    public func writeByte(to command: UInt8, value: UInt8) {
+    public func writeByte(command: UInt8, value: UInt8) {
         controller.setCurrentEndpoint(to: address)
 
         guard controller.writeByte(to: command, value: value) else { fatalError() }
     }
 
-    public func writeWord(to command: UInt8, value: UInt16) {
+    public func writeWord(command: UInt8, value: UInt16) {
         controller.setCurrentEndpoint(to: address)
 
         guard controller.writeWord(to: command, value: value) else { fatalError() }
     }
 
-    public func encode<T>(to command: UInt8, value: T) where T : I2CWritable {
+    public func writeData(command: UInt8, value: Data) {
         controller.setCurrentEndpoint(to: address)
 
-        guard controller.writeByteArray(to: command, value: value.encodeToBuffer()) else { fatalError() }
+        guard controller.writeData(command: command, value: value) else { fatalError() }
     }
 
-    public func writeByteArray(to command: UInt8, value: [UInt8]) {
+    public func encode<T>(command: UInt8, value: T) where T : I2CWritable {
         controller.setCurrentEndpoint(to: address)
 
-        guard controller.writeByteArray(to: command, value: value) else { fatalError() }
+        guard controller.writeData(command: command, value: value.encodeToData()) else { fatalError() }
     }
 }
 
