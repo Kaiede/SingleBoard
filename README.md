@@ -153,6 +153,8 @@ let controlValue: MyControlRegister = [.sleep, .reset]
 i2cDevice.write(command: MyDeviceRegisters.control, value: controlValue)
 ```
 
+Reading works the same way.
+
 For more complex types, there's protocols that you can implement to enable calling `encode` and `decode` on the endpoint with your own types. These leverage `Data` for storing the buffers, but make it possible to keep code a little cleaner.
 
 ```Swift
@@ -161,7 +163,7 @@ protocol I2CWritable { /* ... */ }
 protocol I2CReadWritable { /* ... */ }
 ```
 
-The idea here is to make it a bit easier to use more restrictive types to represent the values to be read and written when interacting with the I2C device. This is demonstrated in the [PCA9685](https://github.com/Kaiede/PCA9685) and [MCP4725](https://github.com/Kaiede/PCA9685) libraries. 
+The idea here is to make it a bit easier to use more restrictive types to represent the values to be read and written when interacting with the I2C device. These techniques are demonstrated in the [PCA9685](https://github.com/Kaiede/PCA9685) and [MCP4725](https://github.com/Kaiede/MCP4725) libraries. 
 
 #### PWM
 
@@ -189,7 +191,7 @@ pwmChannel.enable(pins: [.p12, .p18])
 #### Libraries
 
 * [PCA9685](https://github.com/Kaiede/PCA9685) - A library for the PCA9685 I2C PWM/Servo controller. (Also available for SwiftyGPIO)
-* [MCP4725](https://github.com/Kaiede/PCA9685) - A library for the MCP4725 I2C DAC chip. 
+* [MCP4725](https://github.com/Kaiede/MCP4725) - A library for the MCP4725 I2C DAC chip. 
 
 #### Projects
 
