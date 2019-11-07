@@ -1,15 +1,15 @@
 # SingleBoard
 
-<p align="center">
-	<a href="https://raw.githubusercontent.com/Kaiede/SingleBoard/master/LICENSE"><img src="http://img.shields.io/badge/License-MIT-blue.svg?style=flat"/></a>
-	<a href="#"><img src="https://img.shields.io/badge/OS-Linux-green.svg?style=flat"/></a> 
-	<a href="https://github.com/apple/swift-package-manager"><img src="https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg"/></a>
-	<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/Swift-5.x-orange.svg?style=flat"/></a>
-	<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/Swift-4.x-orange.svg?style=flat"/></a>
-	<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/Swift-3.x-orange.svg?style=flat"/></a>
-	<!--<a href="https://slackpass.io/swift-arm"><img src="https://img.shields.io/badge/Slack-swift/arm-red.svg?style=flat"/></a>-->
-	<a href="https://github.com/Kaiede/RPiLight/actions"><img src="https://github.com/Kaiede/RPiLight/workflows/CI/badge.svg"/></a>
-</p>
+[![Build Status](https://github.com/Kaiede/SingleBoard/workflows/CI/badge.svg)](https://github.com/Kaiede/SingleBoard/actions)
+[![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
+
+![Swift](https://img.shields.io/badge/Swift-5.x-brightgreen.svg?style=flat)
+![Swift](https://img.shields.io/badge/Swift-4.x-brightgreen.svg?style=flat)
+![Swift](https://img.shields.io/badge/Swift-3.x-brightgreen.svg?style=flat)
+
+![SwiftPM](https://img.shields.io/badge/SwiftPM-✔-blue.svg?style=flat)
+
+![Raspbian](https://img.shields.io/badge/OS-Raspbian-green.svg)
 
 GPIO Library for Single Board Computers built in Swift.
 
