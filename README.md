@@ -3,8 +3,10 @@
 <p align="center">
 	<a href="https://raw.githubusercontent.com/Kaiede/SingleBoard/master/LICENSE"><img src="http://img.shields.io/badge/License-MIT-blue.svg?style=flat"/></a>
 	<a href="#"><img src="https://img.shields.io/badge/OS-Linux-green.svg?style=flat"/></a> 
-	<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/Swift-4.x-orange.svg?style=flat"/></a> 
 	<a href="https://github.com/apple/swift-package-manager"><img src="https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg"/></a>
+	<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/Swift-5.x-orange.svg?style=flat"/></a>
+	<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/Swift-4.x-orange.svg?style=flat"/></a>
+	<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/Swift-3.x-orange.svg?style=flat"/></a>
 	<!--<a href="https://slackpass.io/swift-arm"><img src="https://img.shields.io/badge/Slack-swift/arm-red.svg?style=flat"/></a>-->
 	<a href="https://travis-ci.org/Kaiede/SingleBoard"><img src="https://travis-ci.org/Kaiede/SingleBoard.svg?branch=master" /></a>
 </p>
