@@ -8,7 +8,7 @@
 	<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/Swift-4.x-orange.svg?style=flat"/></a>
 	<a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/Swift-3.x-orange.svg?style=flat"/></a>
 	<!--<a href="https://slackpass.io/swift-arm"><img src="https://img.shields.io/badge/Slack-swift/arm-red.svg?style=flat"/></a>-->
-	<a href="https://travis-ci.org/Kaiede/SingleBoard"><img src="https://travis-ci.org/Kaiede/SingleBoard.svg?branch=master" /></a>
+	[![Actions Status](https://github.com/Kaiede/RPiLight/workflows/CI/badge.svg)](https://github.com/Kaiede/RPiLight/actions)
 </p>
 
 GPIO Library for Single Board Computers built in Swift.
