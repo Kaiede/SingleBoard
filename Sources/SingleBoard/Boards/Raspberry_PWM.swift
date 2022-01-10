@@ -42,7 +42,7 @@ class RaspberryPWM: BoardPWM {
 
         self.channels = []
         self.channels.append(RaspberryPWMChannel(channel: 0, controller: self, pins: [.p12, .p18]))
-        self.channels.append(RaspberryPWMChannel(channel: 1, controller: self, pins: [.p12, .p18]))
+        self.channels.append(RaspberryPWMChannel(channel: 1, controller: self, pins: [.p13, .p19]))
     }
 
     var count: Int { 
