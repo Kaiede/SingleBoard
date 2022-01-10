@@ -49,23 +49,23 @@ public typealias ChipCapabilities      = HasI2C
 // MARK: GPIO Access
 //
 // More Types in Common/GPIO.swift
-public protocol HasGPIO: class {
+public protocol HasGPIO: AnyObject {
     var gpio: BoardGPIO { get }
 }
 
-public protocol BoardGPIO: class {
+public protocol BoardGPIO: AnyObject {
     subscript(pins: PinSet) -> BoardGPIOPinSet { get }
     subscript(pin: PinIndex) -> BoardGPIOPin { get }
 }
 
-public protocol BoardGPIOPin: class {
+public protocol BoardGPIOPin: AnyObject {
     var value: Bool { get set }
     var mode: PinMode { get set }
 
     func setPullup(_ pullup: PinPullup)
 }
 
-public protocol BoardGPIOPinSet: class {
+public protocol BoardGPIOPinSet: AnyObject {
     var value: Bool { get set }
 
     func setMode(_ mode: PinMode)
@@ -76,16 +76,16 @@ public protocol BoardGPIOPinSet: class {
 // MARK: I2C Access
 //
 // More Convenience Extensions in Common/I2C.swift
-public protocol HasI2C: class {
+public protocol HasI2C: AnyObject {
     var i2cMainBus: BoardI2CBus { get }
     var i2cBus: BoardI2CBusSet { get }
 }
 
-public protocol BoardI2CBusSet: class {
+public protocol BoardI2CBusSet: AnyObject {
     subscript(busIndex: Int) -> BoardI2CBus? { get }
 }
 
-public protocol BoardI2CBus: class {
+public protocol BoardI2CBus: AnyObject {
     var busId: Int { get }
 
     func isReachable(address: UInt8) -> Bool
@@ -106,7 +106,7 @@ public protocol I2CWritable
 
 public protocol I2CReadWritable: I2CReadable, I2CWritable {}
 
-public protocol BoardI2CEndpoint: class {
+public protocol BoardI2CEndpoint: AnyObject {
     var reachable: Bool { get }
 
     //
@@ -140,11 +140,11 @@ public protocol BoardI2CEndpoint: class {
 //
 // MARK: PWM Access
 //
-public protocol HasPWM: class {
+public protocol HasPWM: AnyObject {
     var pwm: BoardPWM { get }
 }
 
-public protocol BoardPWM: class {
+public protocol BoardPWM: AnyObject {
     var count: Int { get }
 
     func enable()
@@ -153,7 +153,7 @@ public protocol BoardPWM: class {
     subscript(channel: Int) -> BoardPWMChannel { get }
 }
 
-public protocol BoardPWMChannel: class {
+public protocol BoardPWMChannel: AnyObject {
     var pins: PinSet { get }
 
     func enable(pins: PinSet)
