@@ -3,9 +3,8 @@
 [![Build Status](https://github.com/Kaiede/SingleBoard/workflows/CI/badge.svg)](https://github.com/Kaiede/SingleBoard/actions)
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 
-![Swift](https://img.shields.io/badge/Swift-5.x-brightgreen.svg?style=flat)
-![Swift](https://img.shields.io/badge/Swift-4.x-brightgreen.svg?style=flat)
-![Swift](https://img.shields.io/badge/Swift-3.x-brightgreen.svg?style=flat)
+![Swift](https://img.shields.io/badge/Swift-5.1.5-brightgreen.svg?style=flat)
+![Swift](https://img.shields.io/badge/Swift-5.5.2-brightgreen.svg?style=flat)
 
 ![SwiftPM](https://img.shields.io/badge/SwiftPM-✔-blue.svg?style=flat)
 
@@ -190,10 +189,10 @@ pwmChannel.enable(pins: [.p12, .p18])
 
 ## Built with SingleBoard
 
-#### Libraries
+#### Included Libraries
 
-* [PCA9685](https://github.com/Kaiede/PCA9685) - A library for the PCA9685 I2C PWM/Servo controller. (Also available for SwiftyGPIO)
-* [MCP4725](https://github.com/Kaiede/MCP4725) - A library for the MCP4725 I2C DAC chip. 
+* PCA9685 - A library for the PCA9685 I2C PWM/Servo controller.
+* MCP4725 - A library for the MCP4725 I2C DAC chip. 
 
 #### Projects
 
